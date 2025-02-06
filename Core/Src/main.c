@@ -20,9 +20,6 @@ UART_HandleTypeDef huart2;  // UART handle
 
 
 
-/* USER CODE BEGIN PV */
-
-/* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -36,32 +33,15 @@ void ProcessPacket(uint8_t *packet, uint8_t len);
 int main(void)
 {
 
-
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-//  char message[] = "Hello, World!\r\n";
-//   HAL_UART_Transmit(&huart2, (uint8_t *)message, sizeof(message) - 1, HAL_MAX_DELAY);
-  /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
 
   uint8_t receivedByte;
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+
   while (1)
      {
          // Try receiving 1 byte
@@ -76,29 +56,29 @@ int main(void)
         	 HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
          }
      }
-  /* USER CODE END 3 */
+
 }
 
 
 void UART_Handler(uint8_t receivedByte)
 {
-    // Print the received byte and the current state
-    printf("Received byte: 0x%02X, Current state: %d\n", receivedByte, currentState);  // Debug print
+
+    printf("Received byte: 0x%02X, Current state: %d\n", receivedByte, currentState);
 
     switch (currentState) {
         case WAIT_START:
             if (receivedByte == 0xAA) {
                 currentState = RECEIVE_DATA;
-                packetIndex = 0;  // Reset packet index
+                packetIndex = 0;
                 char message[50];
                 sprintf(message, "Transitioned to WAIT_START -> RECEIVE_DATA state\n");
-                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);  // Send via UART
+                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
             }
             break;
 
         case RECEIVE_DATA:
             packet[packetIndex++] = receivedByte;
-            printf("Received data byte: 0x%02X\n", receivedByte);  // Debug print
+            printf("Received data byte: 0x%02X\n", receivedByte);
             if (packetIndex >= 64 || receivedByte == 0x55) {
                 currentState = VALIDATE_CHECKSUM;
                 char message[50];
@@ -112,12 +92,12 @@ void UART_Handler(uint8_t receivedByte)
                 currentState = HANDLE_PACKET;
                 char message[50];
                 sprintf(message, "Transitioned to VALIDATE_CHECKSUM -> HANDLE_PACKET state\n");
-                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);  // Send via UART
+                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
             } else {
                 currentState = WAIT_START;
                 char message[50];
                 sprintf(message, "Transitioned to VALIDATE_CHECKSUM -> WAIT_START state\n");
-                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);  // Send via UART
+                HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
             }
             break;
 
@@ -126,7 +106,7 @@ void UART_Handler(uint8_t receivedByte)
             currentState = WAIT_START;
             char message[50];
             sprintf(message, "Transitioned to HANDLE_PACKET -> WAIT_START state\n");
-            HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);  // Send via UART
+            HAL_UART_Transmit(&huart2, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
             break;
 
         default:
@@ -141,16 +121,12 @@ int ValidateChecksum(uint8_t *packet, uint8_t len)
     for (int i = 0; i < len; i++) {
         checksum += packet[i];
     }
-    return (checksum % 256 == 0);  // Assume checksum is valid if sum is divisible by 256
+    return (checksum % 256 == 0);
 }
-// Process the packet (e.g., store it, send over network, etc.)
+
 void ProcessPacket(uint8_t *packet, uint8_t len)
 {
-    // Placeholder for actual packet processing logic
-    // This could be where you process the packet for further action
-    // For example, store or forward the packet
-    // Here, you might add logic to log, store, or transmit the packet
-    // Example: Print the packet contents over UART
+
     for (int i = 0; i < len; i++) {
         printf("Packet byte %d: 0x%02X\n", i, packet[i]);
     }
@@ -161,14 +137,11 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
+
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -199,14 +172,9 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief USART2 Initialization Function
-  * @param None
-  * @retval None
-  */
+
 static void MX_USART2_UART_Init(void)
 {
-
 
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 115200;
@@ -220,22 +188,14 @@ static void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART2_Init 2 */
 
-  /* USER CODE END USART2_Init 2 */
 
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -258,43 +218,22 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
+  void Error_Handler(void)
   {
+
+    __disable_irq();
+    while (1)
+    {
+    }
+
   }
-  /* USER CODE END Error_Handler_Debug */
-}
 
 #ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+
 }
 #endif /* USE_FULL_ASSERT */
